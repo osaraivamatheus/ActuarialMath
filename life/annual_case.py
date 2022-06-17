@@ -182,6 +182,39 @@ class life_insurance:
         premium = dotal * Ax_temp
 
         return premium * B
+    
+    def Endowment(self, i, age, tmp, B=1):
+        """
+        This function calculates a premium for an endowment life insurance.
+
+        Parameters:
+        -----------
+
+        i: float.
+           Nominal rate.
+
+        age: int.
+               Age.
+        
+        tmp: int.
+             Number of year of contract.
+        
+        B: float.
+           Benefit.
+
+        Returns:
+        --------
+
+        Premium.
+
+        """
+        
+        dotal = self.Pure_Endow(i=i, age=age, tmp=tmp)
+        Ax_temp = self.Ax_tmp(i=i, age=age, tmp=tmp)
+        
+        premium = B * (dotal + Ax_temp)
+        
+        return premium
 
 
 class life_annuity:
