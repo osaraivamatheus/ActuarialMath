@@ -28,11 +28,13 @@ A_{_{x}^{1}:\overline{n}|} = B \cdot \sum_{k=0}^{n} v^{k} {}_{k}p_{x} q_{x+k} \h
 $$
 
 ### The deffered whole life insurance:
+
 $$
 {}_{m|}A_x = B \cdot v^{m} {}_{m}p_{x}  \cdot \sum_{k=0}^{\omega-x} v^{k} {}_{k}p_{x+m} q_{x+m+k} \hspace{.5cm} \text{for } (x+m)<\omega
 $$
 
 ### The deffered term life insurance:
+
 $$
 {}_{m|}A_{_{x}^{1}:\overline{n}|} = B \cdot v^{m} {}_{m}p_{x}  \cdot \sum_{k=0}^{n} v^{k} {}_{k}p_{x+m} q_{x+m+k} \hspace{.5cm} \text{for } (x+m+n)<\omega
 $$
