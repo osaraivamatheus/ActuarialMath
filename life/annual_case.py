@@ -6,13 +6,51 @@ IMPORTANT: All of these classes were bild to calculate premiums for anual case.
 
 
 class life_insurance:
+    """
+    This is a class to calculate premiums and life expectation for
+    the following life insurance products:
+
+    - The whole life insurance;
+    - The term life insurance;
+    - The deffered whole life insurance;
+    - The deffered term life insurance;
+    - Pure Endowment;
+    - Endowment.
+    """
+
     def __init__(self, table):
 
         self.table = np.array(table)
 
+    def life_expectation(self, age):
+        """
+        This function calculates the life expectation at age x according to
+        a life table.
+
+        Parameters:
+        -----------
+
+        age: int.
+             Age.
+
+        Return:
+        -------
+
+        Life expectation at age x: float.
+        """
+
+        qx = self.table[age:]  # Cutting down probability distribution
+        px = list(1 - qx[:-1])  # Calculating 1_p_x
+        px.insert(0, 1)  # setting 0_p_x = 1
+        px = np.array(px)  # tranforming into array
+        t = np.arange(1, len(qx)+1)  # time range
+
+        ex = sum(t * np.cumprod(px) * qx)
+        return np.round(ex)
+
     def Ax(self, i, age, B=1):
         """
-        This function calculates the premium of a whole life insurance for 
+        This function calculates the premium of a whole life insurance for
         the annual case.
 
         Parameters:
@@ -45,7 +83,7 @@ class life_insurance:
 
     def Ax_tmp(self, i, age, tmp, B=1):
         """
-        This function calculates the premium of a term life insurance for 
+        This function calculates the premium of a term life insurance for
         the annual case.
 
         Parameters:
@@ -56,10 +94,10 @@ class life_insurance:
 
         age: int.
                Age.
-        
+
         tmp: int.
              Number of year of contract.
-        
+
         B: float.
            Benefit.
 
@@ -92,10 +130,10 @@ class life_insurance:
 
         age: int.
                Age.
-        
+
         tmp: int.
              Number of year of contract.
-        
+
         B: float.
            Benefit.
 
@@ -127,10 +165,10 @@ class life_insurance:
 
         age: int.
                Age.
-        
+
         n_def: int.
                Number of year of deffering.
-        
+
         B: float.
            Benefit.
 
@@ -159,13 +197,13 @@ class life_insurance:
 
         age: int.
                Age.
-        
-        tmp: int. 
+
+        tmp: int.
              Number of year of contract.
-             
+
         n_def: int.
                Number of year of deffering.
-        
+
         B: float.
            Benefit.
 
@@ -182,7 +220,7 @@ class life_insurance:
         premium = dotal * Ax_temp
 
         return premium * B
-    
+
     def Endowment(self, i, age, tmp, B=1):
         """
         This function calculates a premium for an endowment life insurance.
@@ -195,10 +233,10 @@ class life_insurance:
 
         age: int.
                Age.
-        
+
         tmp: int.
              Number of year of contract.
-        
+
         B: float.
            Benefit.
 
@@ -208,16 +246,26 @@ class life_insurance:
         Premium.
 
         """
-        
+
         dotal = self.Pure_Endow(i=i, age=age, tmp=tmp)
         Ax_temp = self.Ax_tmp(i=i, age=age, tmp=tmp)
-        
+
         premium = B * (dotal + Ax_temp)
-        
+
         return premium
 
 
 class life_annuity:
+    """
+    This is a class to calculate premiums for
+    the following life annuity products:
+
+    - The whole life annuity;
+    - The term life annuity;
+    - The deffered whole life annuity;
+    - The deffered term life annuity.
+    """
+
     def __init__(self, table):
         self.table = np.array(table)
 
@@ -233,13 +281,13 @@ class life_annuity:
 
         age: int.
              Age.
-        
+
         B: float.
            Benefit.
-        
+
         due: bool.
              If true the premium refers to an annuity which benefit is payd immediatly.
-     
+
         Returns:
         --------
 
@@ -253,40 +301,40 @@ class life_annuity:
         qx = self.table[age:]  # Cutting down probability distribution
         px = list(1 - qx)  # Calculating 1_p_x
 
-        premium = sum(v ** t * np.cumprod(px))
+        premium = sum(v**t * np.cumprod(px))
 
         if due:
-            premium = sum(v ** t * np.cumprod(px)) + 1
+            premium = sum(v**t * np.cumprod(px)) + 1
 
         return premium * B
 
     def ax_tmp(self, i, age, tmp, B=1, due=False):
 
         """
-      This function calculates the premium of a term life annuitiy.
+        This function calculates the premium of a term life annuitiy.
 
-      Parameters:
-      -----------
-      i: float.
-         Nominal rate.
+        Parameters:
+        -----------
+        i: float.
+           Nominal rate.
 
-      age: int.
-            Age.
-      
-      tmp: int. 
-            Number of year of contract.
-      
-      B: float.
-         Benefit.
-      
-      due: bool.
-            If true the premium refers to an annuity which benefit is payd immediatly.
+        age: int.
+              Age.
 
-      Returns:
-      --------
+        tmp: int.
+              Number of year of contract.
 
-      Premium.
-      """
+        B: float.
+           Benefit.
+
+        due: bool.
+              If true the premium refers to an annuity which benefit is payd immediatly.
+
+        Returns:
+        --------
+
+        Premium.
+        """
 
         N = age + tmp
         qx = self.table[age:N]  # Cutting down probability distribution
@@ -299,7 +347,7 @@ class life_annuity:
             px.insert(0, 1)  # setting 0_p_x = 1
             t = t - 1
 
-        premium = sum(v ** t * np.cumprod(px))
+        premium = sum(v**t * np.cumprod(px))
 
         return premium * B
 
@@ -314,13 +362,13 @@ class life_annuity:
 
         age: int.
              Age.
-        
-        n_def: int. 
+
+        n_def: int.
                Number of year of deffering.
-        
+
         B: float.
            Benefit.
-        
+
         due: bool.
              If true the premium refers to an annuity which benefit is payd immediatly.
 
@@ -328,7 +376,7 @@ class life_annuity:
         --------
 
         Premium.
-      """
+        """
 
         diff = life_insurance(table=self.table).Pure_Endow(i=i, age=age, tmp=n_def)
         ax = self.ax(i=i, age=age + n_def, due=due)
@@ -346,16 +394,16 @@ class life_annuity:
 
         age: int.
              Age.
-        
-        n_def: int. 
+
+        n_def: int.
                Number of year of deffering.
 
         tmp: int.
              Number of years of contract.
-        
+
         B: float.
            Benefit.
-        
+
         due: bool.
              If true the premium refers to an annuity which benefit is payd immediatly.
 
