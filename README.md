@@ -1,4 +1,4 @@
-# Actuarial math life funtions
+# Actuarial math life functions
 
 This repositoy implements the main products of life insurance. All the math and notations were build based on:
 
