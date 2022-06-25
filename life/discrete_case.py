@@ -23,6 +23,22 @@ class life_insurance:
         self.table = np.array(table)
 
     def fractionation(self, i, k=1):
+      """
+      This is a funtion that supports all of the others methods from this class. 
+      The fractionation is an approximation method to estimate fractional premiumns.
+      In the life insurances case it is given by:
+      
+         fractionning = (i / (k * ((1+i)**(1/k) - 1)))
+      
+      Parameters:
+      -----------
+      k = int.
+          Fraction.
+
+      Return:
+      -------
+      Fraction factor: float.
+      """
 
       return (i / (k * ((1+i)**(1/k) - 1)))
 
@@ -68,6 +84,9 @@ class life_insurance:
         B: float.
            Benefit.
 
+        frac: int.
+              Fractionation of the premium.
+
         Returns:
         --------
 
@@ -104,6 +123,9 @@ class life_insurance:
 
         B: float.
            Benefit.
+        
+        frac: int.
+              Fractionation of the premium.
 
         Returns:
         --------
@@ -140,6 +162,9 @@ class life_insurance:
 
         B: float.
            Benefit.
+        
+        frac: int.
+              Fractionation of the premium.
 
         Returns:
         --------
@@ -176,6 +201,9 @@ class life_insurance:
         B: float.
            Benefit.
 
+        frac: int.
+              Fractionation of the premium.
+
         Returns:
         --------
 
@@ -207,6 +235,9 @@ class life_insurance:
 
         n_def: int.
                Number of year of deffering.
+
+        frac: int.
+              Fractionation of the premium.
 
         B: float.
            Benefit.
@@ -244,6 +275,9 @@ class life_insurance:
         B: float.
            Benefit.
 
+        frac: int.
+              Fractionation of the premium.
+
         Returns:
         --------
 
@@ -273,7 +307,28 @@ class life_annuity:
     def __init__(self, table):
         self.table = np.array(table)
 
-    def ax(self, i, age, B=1, due=False):
+    def fractionation(self, k=1):
+      """
+      This is a funtion that supports all of the others methods from this class. 
+      The fractionation is an approximation method to estimate fractional premiumns.
+      In the annuities case it is given by:
+      
+      
+         fractionning = (k-1)/(2*k)
+      
+      Parameters:
+      -----------
+      k = int.
+          Fraction.
+
+      Return:
+      -------
+      Fraction factor: float.
+      """
+
+      return (k-1)/(2*k)
+
+    def ax(self, i, age, B=1, due=False, frac=1):
 
         """
         This function calculates the premium of a whole life annuitiy.
@@ -292,6 +347,9 @@ class life_annuity:
         due: bool.
              If true the premium refers to an annuity which benefit is payd immediatly.
 
+        frac: int.
+              Fractionation of the premium.
+
         Returns:
         --------
 
@@ -306,13 +364,16 @@ class life_annuity:
         px = list(1 - qx)  # Calculating 1_p_x
 
         premium = sum(v**t * np.cumprod(px))
+        fractionning = self.fractionation(k=frac)
 
         if due:
             premium = sum(v**t * np.cumprod(px)) + 1
+            fractionning = -1 * fractionning
 
-        return premium * B
+        premium = premium + fractionning
+        return premium * B 
 
-    def ax_tmp(self, i, age, tmp, B=1, due=False):
+    def ax_tmp(self, i, age, tmp, B=1, due=False, frac=1):
 
         """
         This function calculates the premium of a term life annuitiy.
@@ -334,6 +395,9 @@ class life_annuity:
         due: bool.
               If true the premium refers to an annuity which benefit is payd immediatly.
 
+        frac: int.
+              Fractionation of the premium.
+
         Returns:
         --------
 
@@ -346,16 +410,20 @@ class life_annuity:
         t = np.arange(1, tmp + 1)
         v = (1 + i) ** -1
 
+        dotal = life_insurance(table=self.table).Pure_Endow(i=i, age=age, tmp=tmp)
+        fractionning = self.fractionation(k=frac) * (1 - dotal)
+
         if due:
             px = list(1 - qx[:-1])  # Calculating 1_p_x
             px.insert(0, 1)  # setting 0_p_x = 1
             t = t - 1
+            fractionning = -1 * fractionning
 
-        premium = sum(v**t * np.cumprod(px))
+        premium = sum(v**t * np.cumprod(px)) + fractionning
 
         return premium * B
 
-    def def_ax(self, i, age, n_def, B=1, due=False):
+    def def_ax(self, i, age, n_def, B=1, due=False, frac=1):
         """
         This function calculates the premium of a deffered life annuitiy.
 
@@ -376,6 +444,9 @@ class life_annuity:
         due: bool.
              If true the premium refers to an annuity which benefit is payd immediatly.
 
+        frac: int.
+              Fractionation of the premium.
+
         Returns:
         --------
 
@@ -385,9 +456,17 @@ class life_annuity:
         diff = life_insurance(table=self.table).Pure_Endow(i=i, age=age, tmp=n_def)
         ax = self.ax(i=i, age=age + n_def, due=due)
 
-        return diff * ax * B
+        fractionning = self.fractionation(k=frac) * diff
+        
+        if due:
+         fractionning = -1 * fractionning
 
-    def def_ax_tmp(self, i, age, n_def, tmp, B=1, due=False):
+        premium = diff * ax * B
+        premium = premium + fractionning
+
+        return premium
+
+    def def_ax_tmp(self, i, age, n_def, tmp, B=1, due=False, frac=1):
         """
         This function calculates the premium of a deffered term life annuity.
 
@@ -411,6 +490,9 @@ class life_annuity:
         due: bool.
              If true the premium refers to an annuity which benefit is payd immediatly.
 
+        frac: int.
+              Fractionation of the premium.
+
         Returns:
         --------
 
@@ -419,5 +501,14 @@ class life_annuity:
 
         diff = life_insurance(table=self.table).Pure_Endow(i=i, age=age, tmp=n_def)
         ax_temp = self.ax_tmp(i, age=age + n_def, tmp=tmp, due=due)
-
-        return diff * ax_temp * B
+        
+        diff2 = life_insurance(table=self.table).Pure_Endow(i=i, age=age, tmp=n_def+tmp)
+        fractionning = self.fractionation(k=frac) * (diff - diff2)
+        
+        if due:
+         fractionning = -1 * fractionning
+        
+        premium = diff * ax_temp * B
+        premium = premium + fractionning
+        
+        return premium
