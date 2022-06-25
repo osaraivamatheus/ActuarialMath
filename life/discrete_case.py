@@ -22,6 +22,10 @@ class life_insurance:
 
         self.table = np.array(table)
 
+    def fractionation(self, i, k=1):
+
+      return (i / (k * ((1+i)**(1/k) - 1)))
+
     def life_expectation(self, age):
         """
         This function calculates the life expectation at age x according to
@@ -48,7 +52,7 @@ class life_insurance:
         ex = sum(t * np.cumprod(px) * qx)
         return np.round(ex)
 
-    def Ax(self, i, age, B=1):
+    def Ax(self, i, age, B=1, frac=1):
         """
         This function calculates the premium of a whole life insurance for
         the annual case.
@@ -79,9 +83,9 @@ class life_insurance:
         t = np.arange(0, len(qx))  # time range
 
         premium = sum(v ** (t + 1) * np.cumprod(px) * qx)
-        return premium * B
+        return premium * B * self.fractionation(i=i, k=frac)
 
-    def Ax_tmp(self, i, age, tmp, B=1):
+    def Ax_tmp(self, i, age, tmp, B=1, frac=1):
         """
         This function calculates the premium of a term life insurance for
         the annual case.
@@ -116,9 +120,9 @@ class life_insurance:
         v = (1 + i) ** -1  # Discount factor
         t = np.arange(0, len(qx))  # time range
         premium = sum(v ** (t + 1) * np.cumprod(px) * qx)
-        return premium * B
+        return premium * B  * self.fractionation(i=i, k=frac)
 
-    def Pure_Endow(self, i, age, tmp, B=1):
+    def Pure_Endow(self, i, age, tmp, B=1, frac=1):
         """
         This function calculates a premium for a pure endowment life insurance.
 
@@ -151,9 +155,9 @@ class life_insurance:
         px.insert(0, 1)  # setting 0_p_x = 1
         premium = v * np.prod(px)
 
-        return premium * B
+        return premium * B * self.fractionation(i=i, k=frac)
 
-    def def_Ax(self, i, age, n_def, B=1):
+    def def_Ax(self, i, age, n_def, B=1, frac=1):
         """
         This function calculates the pure premium for a deffered whole life insurance.
 
@@ -183,9 +187,9 @@ class life_insurance:
 
         premium = dotal * Ax
 
-        return premium * B
+        return premium * B * self.fractionation(i=i, k=frac)
 
-    def def_Ax_tmp(self, i, age, tmp, n_def, B=1):
+    def def_Ax_tmp(self, i, age, tmp, n_def, B=1, frac=1):
         """
         This function calculates the pure premium of a deffered term life insurance.
 
@@ -219,9 +223,9 @@ class life_insurance:
 
         premium = dotal * Ax_temp
 
-        return premium * B
+        return premium * B * self.fractionation(i=i, k=frac)
 
-    def Endowment(self, i, age, tmp, B=1):
+    def Endowment(self, i, age, tmp, B=1, frac=1):
         """
         This function calculates a premium for an endowment life insurance.
 
@@ -250,7 +254,7 @@ class life_insurance:
         dotal = self.Pure_Endow(i=i, age=age, tmp=tmp)
         Ax_temp = self.Ax_tmp(i=i, age=age, tmp=tmp)
 
-        premium = B * (dotal + Ax_temp)
+        premium = B * (dotal + Ax_temp) * self.fractionation(i=i, k=frac)
 
         return premium
 
