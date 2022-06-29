@@ -2,7 +2,7 @@ import numpy as np
 from numpy.polynomial import Polynomial
 from scipy import integrate
 
-class life_insurace:
+class life_insurance:
     
     """
     This class must be used to build a set of functions necesssary to calculate
@@ -104,7 +104,7 @@ class life_insurace:
 
         return Sxt
     
-    def mu_force(self, age, deg=5):
+    def mu_force(self, age):
         
         """
         This function calculates the force of motality at some given age. This function uses the polynomial 
@@ -123,8 +123,6 @@ class life_insurace:
             The force of mortality at given age.
             
         """
-        x = np.arange(0, len(self.qx))
-        
         mu = -1/self.Survival_from_birth(age) * self.Survival_from_birth.deriv()(age)
         
         return mu
