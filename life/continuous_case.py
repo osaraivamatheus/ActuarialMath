@@ -22,10 +22,17 @@ class life_insurace:
         This is a method which produces a function that returns $Pr(T_0 > x)$, i.e, the probability of person
         aged zero survives beyound the age x given an qx distribution. Another common notation for that probability is $_xp_0$.
         
-                     
+        Parameters:
+        -----------
+        t: int
+           Argument of tpx.
+           
+        x: int.
+           Age.
+           
         Returns:
         --------
-        lambda funtion.
+        Probability of an aged x to survive until the age x+t years (tpx). float.
         
         """
         px = 1 - self.qx
@@ -36,17 +43,14 @@ class life_insurace:
     def fit_Survival_from_birth(self, deg):
         """
         Given some pair of point x and y a polynomial function with degree deg is fitted. This is method to create a 
-        continuous function for tpx throught polynomial interpolation method.
+        continuous function for tpx throught polynomial interpolation method. In this case, the values for t lies on the 
+        range [0, infinity) and, y values are given by the function calc_tpx, where x=0.
         
         Parameters:
         -----------
-        x: list or array.
-           X data points (i.e the ages of a life table)
-        y: list or array.
-           y data points (i.e the tpx af a life table)
-        
+               
         deg: int.
-           Degree of a the polynomial to be fitted.
+           Degree of polynomial function to be fitted.
            
         Returns:
         --------
@@ -74,14 +78,30 @@ class life_insurace:
         
     
     def Survival_from_age(self, age, to):
+        """
+        Since the ``Survival_from_birth`` function is fitted this function calculates the probability S_0 applied on x.
+        
+        Parameters:
+        -----------
+        
+        age: int.
+             Age.
+        
+        to: int.
+            limit for survival.
+            
+        Returns:
+        --------
+        
+        The probability of a person aged ``age`` survives until the age ``age+to``. float.
+        
+        """
         
         if self.Survival_from_birth == 'Not fitted yet.':
             raise Exception('You must need to fit survival from birth first')
             
         Sxt = self.Survival_from_birth(age+to) / self.Survival_from_birth(age)
-        
-#         if (Sxt > 1):
-#             raise Exception('The function does not return a probabilistic result. Fit survival from birth again (increase degree)')
+
         return Sxt
     
     def mu_force(self, age, deg=5):
