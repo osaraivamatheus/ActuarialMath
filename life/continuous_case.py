@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.polynomial import Polynomial
 from scipy import integrate
+import matplotlib.pyplot as plt
 
 class life_insurance:
     
@@ -10,12 +11,10 @@ class life_insurance:
     
     """
     def __init__(self, qx):
-        self.qx = np.array(qx)
-        self.age = None
+        self.qx = np.append(np.array(qx), np.ones(150-len(qx)))
         self.Survival_from_birth = 'Not fitted yet.'
-        self.Survival_from_birth_Coef = 'Not estimated yet.' 
-        self.Prob_tpx = 'Not fitted yet.'
-        self.Ax_integral = 'Not defined yet.'
+        self.Survival_from_birth_Coef = 'Not estimated yet.'
+ 
     
     def calc_tpx(self, t, x):
         """
@@ -70,11 +69,13 @@ class life_insurance:
         fitted = np.poly1d(f)
         
         if any(fitted(t) > 1):
-            raise Exception('The function does not return a probabilistic result. Fit survival from birth again (increase degree)')
+            raise Exception('The function does not return a probabilistic result. Fit survival from birth again and adjust degree.')
         
         self.Survival_from_birth_Coef = Polynomial(f)
         self.Survival_from_birth = fitted 
         
+        mse = sum((fitted(t) - y)**2) / len(t)
+        print(f" MSE: {np.round(mse, 6)}")
         
     
     def Survival_from_age(self, age, to):
@@ -100,9 +101,13 @@ class life_insurance:
         if self.Survival_from_birth == 'Not fitted yet.':
             raise Exception('You must need to fit survival from birth first')
             
-        Sxt = self.Survival_from_birth(age+to) / self.Survival_from_birth(age)
-
-        return Sxt
+        
+        prob = self.Survival_from_birth(age+to) / self.Survival_from_birth(age)
+        
+        if age+to > 120:
+            return 0
+        
+        return prob
     
     def mu_force(self, age):
         
@@ -127,40 +132,18 @@ class life_insurance:
         
         return mu
     
-    def define_integral(self, delta):
+    def premium(self, age, delta, contract=np.infty, B=1):
         """
-        This method defines a continuos function to be integrated. 
+        This function is used to calculate the premium of life insurace contract. 
         
         Parameters:
         -----------
+        age: int.
+             Age.
         
-        delta: float.
-               rate of discount factor.
-               
-        Returns:
-        --------
+        delta: float. 
+               rate for discount factor
         
-        lambda function.
-        
-        """
-        
-        if self.Survival_from_birth == 'Not fitted yet.':
-            raise Exception('Continuous survival function is not fitted yet.')
-            
-        if self.mu_force == 'Not fitted yet.':
-            raise Exception('Mortality force function is not fitted yet.')
-        
-        f = lambda time: self.mu_force(time)*np.exp(-time*delta)*self.Survival_from_birth(time)
-        
-        self.Ax_integral = f
-    
-    def premium(self, contract, B=1):
-        """
-        This function is used to calculate the premium of life insurace contract. The premium is the result of 
-        the integral defined on the ``define_integral()`` method.
-        
-        Parameters:
-        -----------
         contract: float or int.
                   Time contract. If contract is equal to ``np.infinity`` than premium refers to a wholel life insurance.
         B: float.
@@ -173,9 +156,16 @@ class life_insurance:
         
         """
         
-        if self.Ax_integral == 'Not defined yet.':
-            raise Exception('Integral is not defined yet.')
+        if self.Survival_from_birth == 'Not fitted yet.':
+            raise Exception('Continuous survival function is not fitted yet.')
             
-        to_integrate = self.Ax_integral
+        if self.mu_force == 'Not fitted yet.':
+            raise Exception('Mortality force function is not fitted yet.')
+                            
+        if contract > 150:
+            contract = 150
         
-        return integrate.quad(to_integrate, a=0, b=contract)[0] * B
+        f = lambda time: self.mu_force(age+time)*np.exp(-time*delta) * (self.Survival_from_birth(time+age) if self.Survival_from_birth(time+age) <=1 else 1)
+#         f = lambda time: np.exp(-time*delta) * (-1/self.Survival_from_birth(age)) * self.Survival_from_birth.deriv()(age+time)
+                
+        return integrate.quad(f, a=0, b=contract)[0] * B
