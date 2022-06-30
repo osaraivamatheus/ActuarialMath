@@ -1,7 +1,20 @@
 import numpy as np
 from numpy.polynomial import Polynomial
 from scipy import integrate
+
+import warnings
 import matplotlib.pyplot as plt
+
+def fix_estimation(y_est):
+        
+    y_est = np.array(y_est)
+    fix = (y_est < 0)   
+    y_est[fix] = 0
+
+    fix = (y_est > 1)
+    y_est[fix] = 1
+    
+    return y_est
 
 class life_insurance:
     
@@ -10,8 +23,8 @@ class life_insurance:
     the whole life insurance and the term life insurance. 
     
     """
-    def __init__(self, qx):
-        self.qx = np.append(np.array(qx), np.ones(150-len(qx)))
+    def __init__(self, table):
+        self.table = np.array(table)
         self.Survival_from_birth = 'Not fitted yet.'
         self.Survival_from_birth_Coef = 'Not estimated yet.'
  
@@ -34,7 +47,7 @@ class life_insurance:
         Probability of an aged x to survive until the age x+t years (tpx). float.
         
         """
-        px = 1 - self.qx
+        px = 1 - self.table
         tpx = np.prod(px[x:x+t])
         return tpx
             
@@ -61,15 +74,15 @@ class life_insurance:
         
         vec_tpx = np.vectorize(lambda t: self.calc_tpx(t, x=0))
         
-        t = np.arange(0, len(self.qx)+1)
+        t = np.arange(0, len(self.table)+1)
         y = vec_tpx(t=t)
         
         f = np.polyfit(t, y, deg=deg)
         
         fitted = np.poly1d(f)
         
-        if any(fitted(t) > 1):
-            raise Exception('The function does not return a probabilistic result. Fit survival from birth again and adjust degree.')
+#         if any(fitted(t) > 1):
+#             warnings.warn('The function does not return a probabilistic result. Fit survival from birth again and adjust degree.')
         
         self.Survival_from_birth_Coef = Polynomial(f)
         self.Survival_from_birth = fitted 
@@ -77,7 +90,7 @@ class life_insurance:
         mse = sum((fitted(t) - y)**2) / len(t)
         print(f" MSE: {np.round(mse, 6)}")
         
-    
+
     def Survival_from_age(self, age, to):
         """
         Since the ``Survival_from_birth`` function is fitted this function calculates the probability S_0 applied on x.
@@ -101,12 +114,10 @@ class life_insurance:
         if self.Survival_from_birth == 'Not fitted yet.':
             raise Exception('You must need to fit survival from birth first')
             
+        if age+to > len(self.table):
+            raise Exception('Estimation is out of range. Age + to needs to be lower than len(table).')
         
-        prob = self.Survival_from_birth(age+to) / self.Survival_from_birth(age)
-        
-        if age+to > 120:
-            return 0
-        
+        prob = self.Survival_from_birth(age+to) / self.Survival_from_birth(age)            
         return prob
     
     def mu_force(self, age):
@@ -161,11 +172,21 @@ class life_insurance:
             
         if self.mu_force == 'Not fitted yet.':
             raise Exception('Mortality force function is not fitted yet.')
-                            
-        if contract > 150:
-            contract = 150
+                                
         
-        f = lambda time: self.mu_force(age+time)*np.exp(-time*delta) * (self.Survival_from_birth(time+age) if self.Survival_from_birth(time+age) <=1 else 1)
-#         f = lambda time: np.exp(-time*delta) * (-1/self.Survival_from_birth(age)) * self.Survival_from_birth.deriv()(age+time)
-                
+        f = lambda time: np.exp(-time*delta) * self.mu_force(age+time) * ( self.Survival_from_birth(time+age) if time+age < len(self.table) else 1)
+        
+        
+        omega = len(self.table) - age
+        if contract > len(self.table):
+            contract = omega
+            
+        testing = [integrate.quad(f, a=0, b=tmp)[0] * B for tmp in np.arange(omega+1)]
+        testing = np.array(testing)
+        
+        check = ( (testing < 0) | (testing > 1) )
+        if any(check):
+            warnings.warn("Maybe the premium is not valid. Try to fit a new survival function with a higher degree.")
+        
+        
         return integrate.quad(f, a=0, b=contract)[0] * B
