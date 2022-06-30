@@ -143,7 +143,7 @@ class life_insurance:
         
         return mu
     
-    def premium(self, age, delta, contract=np.infty, B=1):
+    def premium(self, age, i, contract=np.infty, B=1):
         """
         This function is used to calculate the premium of life insurace contract. 
         
@@ -152,7 +152,7 @@ class life_insurance:
         age: int.
              Age.
         
-        delta: float. 
+        i: float. 
                rate for discount factor
         
         contract: float or int.
@@ -173,7 +173,7 @@ class life_insurance:
         if self.mu_force == 'Not fitted yet.':
             raise Exception('Mortality force function is not fitted yet.')
                                 
-        
+        delta = np.log(1+i)
         f = lambda time: np.exp(-time*delta) * self.mu_force(age+time) * ( self.Survival_from_birth(time+age) if time+age < len(self.table) else 1)
         
         
