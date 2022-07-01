@@ -4,7 +4,7 @@ This repositoy implements the main products of life insurance. All the math and 
 
 [Dickson, D.C.M. and Hardy, M.R. and Waters, H.R. - Actuarial Mathematics for Life Contingent Risk. 2013.](https://www.amazon.com.br/Actuarial-Mathematics-Life-Contingent-Risks/dp/1107044073)
 
-## Pure premium for  the annual life insurance's variations
+## Pure fractional and annual premium for the life insurance's variations
 
 - The whole life insurance;
 - The term life insurance;
