@@ -395,8 +395,10 @@ class isrc_continuous:
             
         """
         mu = -1/self.Survival_from_birth(age) * self.Survival_from_birth.deriv()(age)
-        
-        return mu
+        mu = np.array(mu)
+        mu[mu < 0] = 1
+        mu[mu > 1] = 1
+        return mu 	
     
     def premium(self, age, i, contract=np.infty, B=1):
         """
@@ -433,15 +435,16 @@ class isrc_continuous:
         
         
         omega = len(self.table) - age
-        if contract > len(self.table):
+        if ( (contract > omega) | ((contract+age) > omega) ):
             contract = omega
             
-        testing = [integrate.quad(f, a=0, b=tmp)[0] * B for tmp in np.arange(omega+1)]
-        testing = np.array(testing)
+#         testing = [integrate.quad(f, a=0, b=tmp)[0] * B for tmp in np.arange(omega+1)]
+#         testing = np.array(testing)
         
-        check = ( (testing < 0) | (testing > 1) )
-        if any(check):
-            warnings.warn("Maybe the premium is not valid. Try to fit a new survival function with a higher degree.")
+#         check = ( (testing < 0) | (testing > 1) )
+#         if any(check):
+#             warnings.warn("Maybe the premium is not valid. Try to fit a new survival function with a higher degree.")
         
         
-        return integrate.quad(f, a=0, b=contract)[0] * B
+        premium = integrate.quad(f, a=0, b=contract)[0] * B
+        return premium
