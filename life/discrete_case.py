@@ -257,6 +257,32 @@ class life_insurance:
         premium = B * (dotal + Ax_temp) * self.fractionation(i=i, k=frac)
 
         return premium
+    
+    def var(PROD, **params):
+        """
+        This function calculates the variance of a premium of a whole life insurance 
+        for the annual case.
+
+        Parameters:
+        -----------
+
+        i: float.
+           Nominal rate.
+
+        age: int.
+               age
+
+        B: float.
+            Benefit
+
+         Returns:
+         --------
+
+         Premium.
+
+         """
+        i2 = ((i + 1) ** 2) - 1
+        return np.abs((PROD(i=i2,**params)-(PROD(**params) ** 2)))
 
 
 class life_annuity:
